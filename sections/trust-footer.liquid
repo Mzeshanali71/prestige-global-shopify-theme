@@ -1,29 +1,132 @@
-<footer style="background:#FFFFFF; border-top:1px solid #E5E5E5; margin-top:60px;">
-  <div class="container" style="padding-top:48px; padding-bottom:48px; border-bottom:1px solid #E5E5E5;">
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:32px; text-align:center;">
+<footer class="site-footer" style="border-top: 1px solid #E5E5E5; background: #FFFFFF; color: #1A1A1A; margin-top: 60px;">
+  <!-- Top Trust Strip -->
+  <div style="border-bottom: 1px solid #E5E5E5; padding: 40px 0;">
+    <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; text-align: center;">
       <div>
-        <h4 style="font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px;">Express DHL Global Shipping</h4>
-        <p style="font-size:12px; color:#666666;">3–5 Business Days to the US & UK</p>
+        <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">{{ section.settings.trust_1_title }}</h4>
+        <p style="font-size: 12px; color: #666; margin: 0;">{{ section.settings.trust_1_text }}</p>
       </div>
       <div>
-        <h4 style="font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px;">Secure Multi-Currency Checkout</h4>
-        <p style="font-size:12px; color:#666666;">Shop seamlessly in USD ($) & GBP (£)</p>
+        <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">{{ section.settings.trust_2_title }}</h4>
+        <p style="font-size: 12px; color: #666; margin: 0;">{{ section.settings.trust_2_text }}</p>
       </div>
       <div>
-        <h4 style="font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px;">30-Day Hassle-Free Returns</h4>
-        <p style="font-size:12px; color:#666666;">Easy international exchanges & refunds</p>
+        <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">{{ section.settings.trust_3_title }}</h4>
+        <p style="font-size: 12px; color: #666; margin: 0;">{{ section.settings.trust_3_text }}</p>
       </div>
     </div>
   </div>
 
-  <div class="container" style="padding:32px; text-align:center; font-size:11px; color:#666666; letter-spacing:1px; text-transform:uppercase;">
-    &copy; {{ 'now' | date: '%Y' }} {{ shop.name | default: 'PRESTIGE GLOBAL' }}. All Rights Reserved.
+  <!-- Main Footer Columns -->
+  <div class="container" style="padding: 64px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 48px;">
+    <!-- Column 1: Brand & Newsletter -->
+    <div style="max-width: 320px;">
+      <div style="font-size: 16px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 16px;">
+        {{ shop.name | default: 'THE PRESTIGE' }}
+      </div>
+      <p style="font-size: 12px; line-height: 1.7; color: #555; margin-bottom: 24px;">
+        {{ section.settings.brand_description }}
+      </p>
+      
+      {% form 'customer' %}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <div style="display: flex; border-bottom: 1px solid #1A1A1A; padding-bottom: 6px;">
+          <input type="email" name="contact[email]" placeholder="Enter your email" required style="border: none; outline: none; width: 100%; font-size: 12px; background: transparent; color: #1A1A1A;">
+          <button type="submit" style="border: none; background: transparent; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; cursor: pointer; padding-left: 12px;">Join</button>
+        </div>
+        {% if form.posted_successfully? %}
+          <p style="font-size: 11px; color: #1A1A1A; margin-top: 8px;">Thank you for subscribing.</p>
+        {% endif %}
+      {% endform %}
+    </div>
+
+    <!-- Column 2: Collections -->
+    <div>
+      <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 20px;">Collections</h4>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+        <li><a href="/collections/for-women" style="text-decoration: none; color: #555;">For Women</a></li>
+        <li><a href="/collections/for-men" style="text-decoration: none; color: #555;">For Men</a></li>
+        <li><a href="/collections/all" style="text-decoration: none; color: #555;">New Arrivals</a></li>
+        <li><a href="/collections/sale" style="text-decoration: none; color: #D32F2F;">Seasonal Sale</a></li>
+      </ul>
+    </div>
+
+    <!-- Column 3: Client Services -->
+    <div>
+      <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 20px;">Client Services</h4>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+        <li><a href="/pages/contact" style="text-decoration: none; color: #555;">Contact Us</a></li>
+        <li><a href="/policies/shipping-policy" style="text-decoration: none; color: #555;">Shipping & Delivery</a></li>
+        <li><a href="/policies/refund-policy" style="text-decoration: none; color: #555;">Returns & Exchanges</a></li>
+        <li><a href="/pages/size-guide" style="text-decoration: none; color: #555;">Size & Fit Guide</a></li>
+      </ul>
+    </div>
+
+    <!-- Column 4: Legal & Policies -->
+    <div>
+      <h4 style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 20px;">Legal</h4>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+        <li><a href="/policies/privacy-policy" style="text-decoration: none; color: #555;">Privacy Policy</a></li>
+        <li><a href="/policies/terms-of-service" style="text-decoration: none; color: #555;">Terms of Service</a></li>
+        <li><a href="/policies/contact-information" style="text-decoration: none; color: #555;">Company Information</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bottom Copyright Bar -->
+  <div style="border-top: 1px solid #F0F0F0; padding: 24px 0; text-align: center; font-size: 11px; letter-spacing: 1px; color: #888;">
+    <div class="container">
+      &copy; {{ 'now' | date: '%Y' }} {{ shop.name | default: 'THE PRESTIGE' | upcase }}. ALL RIGHTS RESERVED.
+    </div>
   </div>
 </footer>
 
 {% schema %}
 {
-  "name": "Trust & Global Footer",
-  "settings": []
+  "name": "Global Luxury Footer",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "brand_description",
+      "label": "Brand Statement",
+      "default": "Curated minimalist fashion crafted with enduring materials and architectural precision for the modern wardrobe."
+    },
+    {
+      "type": "text",
+      "id": "trust_1_title",
+      "label": "Trust Badge 1 Title",
+      "default": "Express DHL Global Shipping"
+    },
+    {
+      "type": "text",
+      "id": "trust_1_text",
+      "label": "Trust Badge 1 Subtitle",
+      "default": "3-5 Business Days to the US & UK"
+    },
+    {
+      "type": "text",
+      "id": "trust_2_title",
+      "label": "Trust Badge 2 Title",
+      "default": "Secure Multi-Currency Checkout"
+    },
+    {
+      "type": "text",
+      "id": "trust_2_text",
+      "label": "Trust Badge 2 Subtitle",
+      "default": "Shop seamlessly in USD ($) & GBP (£)"
+    },
+    {
+      "type": "text",
+      "id": "trust_3_title",
+      "label": "Trust Badge 3 Title",
+      "default": "30-Day Hassle-Free Returns"
+    },
+    {
+      "type": "text",
+      "id": "trust_3_text",
+      "label": "Trust Badge 3 Subtitle",
+      "default": "Easy international exchanges & refunds"
+    }
+  ]
 }
 {% endschema %}
