@@ -29,10 +29,29 @@
             "text_alignment": "left"
           },
           "blocks": {}
+        },
+        "ai_gen_block_f0e0adb_krAX6c": {
+          "type": "ai_gen_block_f0e0adb",
+          "settings": {
+            "eyebrow": "The new collection",
+            "heading": "A study in modern elegance",
+            "description": "<p>Considered pieces, made to bring beauty to the everyday.</p>",
+            "button_label": "Discover the collection",
+            "button_link": "",
+            "desktop_width_percent": 100,
+            "hero_height": 600,
+            "mobile_height": 450,
+            "heading_size": 60,
+            "overlay_strength": 4,
+            "content_alignment": "center",
+            "text_alignment": "left"
+          },
+          "blocks": {}
         }
       },
       "block_order": [
-        "ai_gen_block_f0e0adb_AAPTTf"
+        "ai_gen_block_f0e0adb_AAPTTf",
+        "ai_gen_block_f0e0adb_krAX6c"
       ],
       "settings": {}
     }
