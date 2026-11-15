@@ -81,10 +81,35 @@
         "ai_gen_block_18cd116_Ge4CPP"
       ],
       "settings": {}
+    },
+    "1794714584de9dcce2": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_62b8194_KJcXAY": {
+          "type": "ai_gen_block_62b8194",
+          "settings": {
+            "heading": "Featured products",
+            "products": [],
+            "desktop_width_percent": 100,
+            "columns_desktop": "4",
+            "columns_mobile": "2",
+            "heading_size": 28,
+            "gap": 24,
+            "background_color": "#FFFFFF",
+            "text_color": "#1A1A1A"
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "ai_gen_block_62b8194_KJcXAY"
+      ],
+      "settings": {}
     }
   },
   "order": [
     "1794714146c9de888f",
-    "1794714471c8995bb6"
+    "1794714471c8995bb6",
+    "1794714584de9dcce2"
   ]
 }
