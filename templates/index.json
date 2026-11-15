@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "hero": {
+      "type": "custom-hero"
+    },
+    "categories": {
+      "type": "category-grid"
+    },
+    "featured": {
+      "type": "featured-products"
+    },
+    "promo": {
+      "type": "split-promo"
+    }
+  },
+  "order": [
+    "hero",
+    "categories",
+    "featured",
+    "promo"
+  ]
+}
