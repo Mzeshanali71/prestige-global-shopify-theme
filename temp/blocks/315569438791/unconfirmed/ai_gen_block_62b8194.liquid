@@ -1,6 +1,242 @@
+{% doc %}
+  @prompt
+    Generate Featured Product Grid above Curated Category Grid and below Editorial Hero Banner
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-featured-grid-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    color: {{ block.settings.text_color }};
+    background: {{ block.settings.background_color }};
+  }
+
+  .ai-featured-grid__inner-{{ ai_gen_id }} {
+    width: 100%;
+  }
+
+  .ai-featured-grid__heading-{{ ai_gen_id }} {
+    color: inherit;
+    font-size: {{ block.settings.heading_size }}px;
+    line-height: 1.2;
+    margin: 0 0 24px;
+  }
+
+  .ai-featured-grid__items-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat({{ block.settings.columns_desktop }}, minmax(0, 1fr));
+    gap: {{ block.settings.gap }}px;
+  }
+
+  .ai-featured-grid__card-{{ ai_gen_id }} {
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ai-featured-grid__media-{{ ai_gen_id }} {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: #f4f4f4;
+    margin-bottom: 14px;
+  }
+
+  .ai-featured-grid__media-{{ ai_gen_id }} img,
+  .ai-featured-grid__media-{{ ai_gen_id }} svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-featured-grid__details-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ai-featured-grid__title-{{ ai_gen_id }} {
+    margin: 0;
+    color: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .ai-featured-grid__price-{{ ai_gen_id }} {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .ai-featured-grid__compare-{{ ai_gen_id }} {
+    margin-left: 8px;
+    text-decoration: line-through;
+    opacity: 0.72;
+  }
+
+  .ai-featured-grid__empty-{{ ai_gen_id }} {
+    grid-column: 1 / -1;
+    padding: 36px 20px;
+    text-align: center;
+    color: {{ block.settings.text_color }};
+    background: #f4f4f4;
+  }
+
+  .ai-featured-grid__empty-{{ ai_gen_id }} p {
+    margin: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-featured-grid-{{ ai_gen_id }} {
+      width: 100%;
+    }
+
+    .ai-featured-grid__items-{{ ai_gen_id }} {
+      grid-template-columns: repeat({{ block.settings.columns_mobile }}, minmax(0, 1fr));
+      gap: 16px 12px;
+    }
+
+    .ai-featured-grid__heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+      margin-bottom: 18px;
+    }
+  }
+{% endstyle %}
+
+<div class="ai-featured-grid-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-featured-grid__inner-{{ ai_gen_id }}">
+    {% if block.settings.heading != blank %}
+      <h2 class="ai-featured-grid__heading-{{ ai_gen_id }}">{{ block.settings.heading | escape }}</h2>
+    {% endif %}
+    <div class="ai-featured-grid__items-{{ ai_gen_id }}">
+      {% if block.settings.products != blank %}
+        {% for product in block.settings.products %}
+          <a class="ai-featured-grid__card-{{ ai_gen_id }}" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+            <div class="ai-featured-grid__media-{{ ai_gen_id }}">
+              {% if product.featured_image %}
+                <img
+                  src="{{ product.featured_image | image_url: width: 900 }}"
+                  alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                  loading="lazy"
+                  width="{{ product.featured_image.width }}"
+                  height="{{ product.featured_image.height }}"
+                >
+              {% else %}
+                <div class="ai-featured-grid__placeholder-{{ ai_gen_id }}">
+                  {{ 'product-apparel-1' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="ai-featured-grid__details-{{ ai_gen_id }}">
+              <h3 class="ai-featured-grid__title-{{ ai_gen_id }}">{{ product.title | escape }}</h3>
+              <div class="ai-featured-grid__price-{{ ai_gen_id }}">
+                {{ product.price | money }}
+                {% if product.compare_at_price > product.price %}
+                  <span class="ai-featured-grid__compare-{{ ai_gen_id }}">{{ product.compare_at_price | money }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="ai-featured-grid__empty-{{ ai_gen_id }}">
+          <p>Select products to display in this featured grid.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
 {% schema %}
- {
-   "name": "AI_Block",
-   "tag": "shopify-ai-generated-block"
- }
+{
+  "name": "Featured product grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured products"
+    },
+    {
+      "type": "product_list",
+      "id": "products",
+      "label": "Products",
+      "limit": 8
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 18,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Grid gap",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1A1A1A"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured product grid"
+    }
+  ],
+  "tag": null,
+  "class": "featured-product-grid"
+}
 {% endschema %}
