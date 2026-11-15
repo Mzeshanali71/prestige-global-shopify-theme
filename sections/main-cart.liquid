@@ -1,0 +1,58 @@
+<section style="padding: 60px 0 100px; min-height: 60vh;">
+  <div class="container" style="max-width: 900px;">
+    <h1 style="font-size: 22px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 500; margin-bottom: 40px; text-align: center;">Your Shopping Bag</h1>
+
+    {% if cart.item_count > 0 %}
+      <form action="{{ routes.cart_url }}" method="post" novalidate>
+        <div style="border-top: 1px solid #E5E5E5;">
+          {% for item in cart.items %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 24px 0; border-bottom: 1px solid #E5E5E5; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 20px;">
+                {% if item.image %}
+                  <img src="{{ item.image | image_url: width: 160 }}" alt="{{ item.title | escape }}" style="width: 80px; height: 100px; object-fit: cover;">
+                {% endif %}
+                <div>
+                  <a href="{{ item.url }}" style="font-size: 14px; font-weight: 500; text-decoration: none; color: #1A1A1A; display: block; margin-bottom: 6px;">{{ item.product.title }}</a>
+                  {% unless item.product.has_only_default_variant %}
+                    <div style="font-size: 12px; color: #666; margin-bottom: 6px;">{{ item.variant.title }}</div>
+                  {% endunless %}
+                  <div style="font-size: 13px;">{{ item.final_price | money }}</div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 20px;">
+                <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" style="width: 55px; padding: 8px; border: 1px solid #CCC; text-align: center; font-size: 13px;">
+                <a href="{{ item.url_to_remove }}" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #D32F2F; text-decoration: underline;">Remove</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div style="margin-top: 36px; display: flex; flex-direction: column; align-items: flex-end;">
+          <div style="font-size: 16px; margin-bottom: 8px;">
+            <span style="text-transform: uppercase; letter-spacing: 1.5px; font-size: 12px; margin-right: 16px;">Subtotal</span>
+            <strong>{{ cart.total_price | money }}</strong>
+          </div>
+          <p style="font-size: 12px; color: #666; margin-bottom: 24px;">Taxes and shipping calculated at checkout.</p>
+          
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" name="update" style="padding: 14px 28px; background: #FFF; color: #1A1A1A; border: 1px solid #1A1A1A; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;">Update Bag</button>
+            <button type="submit" name="checkout" style="padding: 14px 36px; background: #1A1A1A; color: #FFF; border: 1px solid #1A1A1A; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;">Checkout</button>
+          </div>
+        </div>
+      </form>
+    {% else %}
+      <div style="text-align: center; padding: 60px 20px;">
+        <p style="font-size: 14px; color: #666; margin-bottom: 28px;">Your shopping bag is currently empty.</p>
+        <a href="/collections/all" style="display: inline-block; padding: 14px 36px; background: #1A1A1A; color: #FFF; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none;">Continue Shopping</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Main Cart",
+  "settings": []
+}
+{% endschema %}
