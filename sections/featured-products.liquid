@@ -1,0 +1,75 @@
+<section style="padding: 40px 0 80px;">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:36px;">
+      <h2 style="font-size:18px; letter-spacing:2.5px; text-transform:uppercase; font-weight:500;">{{ section.settings.heading }}</h2>
+      <a href="/collections/all" style="font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:underline;">View All</a>
+    </div>
+
+    <div class="product-grid">
+      {% assign target_collection = collections[section.settings.collection] | default: collections.all %}
+      {% for product in target_collection.products limit: 8 %}
+        <div class="product-card">
+          {% if product.compare_at_price > product.price %}
+            <span class="badge-sale">Sale</span>
+          {% endif %}
+          <a href="{{ product.url }}">
+            <div class="product-img-wrap">
+              {% if product.featured_image %}
+                <img src="{{ product.featured_image | image_url: width: 700 }}" alt="{{ product.title | escape }}">
+              {% else %}
+                <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=80" alt="{{ product.title }}">
+              {% endif %}
+            </div>
+            <div class="product-info">
+              <div class="product-title">{{ product.title }}</div>
+              <div class="product-price">
+                {% if product.compare_at_price > product.price %}
+                  <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                  <span class="price-sale">{{ product.price | money }}</span>
+                {% else %}
+                  <span>{{ product.price | money }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        </div>
+      {% else %}
+        <!-- Fallback Visual Placeholders before products are uploaded -->
+        {% for i in (1..4) %}
+          <div class="product-card">
+            <span class="badge-sale">New Season</span>
+            <div class="product-img-wrap">
+              <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=700&q=80" alt="Sample Item">
+            </div>
+            <div class="product-info">
+              <div class="product-title">Editorial Tailored Piece 0{{ i }}</div>
+              <div class="product-price">
+                <span class="price-compare">$240.00</span>
+                <span class="price-sale">$185.00</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured Product Grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section Heading",
+      "default": "Seasonal Highlights"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    }
+  ]
+}
+{% endschema %}
