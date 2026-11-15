@@ -29,34 +29,62 @@
             "text_alignment": "left"
           },
           "blocks": {}
-        },
-        "ai_gen_block_f0e0adb_krAX6c": {
-          "type": "ai_gen_block_f0e0adb",
+        }
+      },
+      "block_order": [
+        "ai_gen_block_f0e0adb_AAPTTf"
+      ],
+      "settings": {}
+    },
+    "1794714471c8995bb6": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_18cd116_Ge4CPP": {
+          "type": "ai_gen_block_18cd116",
           "settings": {
-            "eyebrow": "The new collection",
-            "heading": "A study in modern elegance",
-            "description": "<p>Considered pieces, made to bring beauty to the everyday.</p>",
-            "button_label": "Discover the collection",
-            "button_link": "",
+            "eyebrow": "DISCOVER THE EDIT",
+            "heading": "Curated for you",
+            "description": "<p>Explore considered collections, selected to inspire your next look.</p>",
             "desktop_width_percent": 100,
-            "hero_height": 600,
-            "mobile_height": 450,
-            "heading_size": 60,
-            "overlay_strength": 4,
-            "content_alignment": "center",
-            "text_alignment": "left"
+            "columns_desktop": "3",
+            "columns_mobile": "2",
+            "gap": 20,
+            "mobile_gap": 12,
+            "padding_y": 30,
+            "heading_size": 36,
+            "alignment": "left",
+            "background_color": "#FFFFFF",
+            "text_color": "#1A1A1A",
+            "category_1_enabled": true,
+            "category_1_title": "New arrivals",
+            "category_1_collection": "",
+            "category_2_enabled": true,
+            "category_2_title": "Best sellers",
+            "category_2_collection": "",
+            "category_3_enabled": true,
+            "category_3_title": "Clothing",
+            "category_3_collection": "",
+            "category_4_enabled": false,
+            "category_4_title": "Accessories",
+            "category_4_collection": "",
+            "category_5_enabled": false,
+            "category_5_title": "Featured",
+            "category_5_collection": "",
+            "category_6_enabled": false,
+            "category_6_title": "More to explore",
+            "category_6_collection": ""
           },
           "blocks": {}
         }
       },
       "block_order": [
-        "ai_gen_block_f0e0adb_AAPTTf",
-        "ai_gen_block_f0e0adb_krAX6c"
+        "ai_gen_block_18cd116_Ge4CPP"
       ],
       "settings": {}
     }
   },
   "order": [
-    "1794714146c9de888f"
+    "1794714146c9de888f",
+    "1794714471c8995bb6"
   ]
 }
