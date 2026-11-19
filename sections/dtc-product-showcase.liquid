@@ -1,0 +1,1004 @@
+{% comment %}
+  Section: DTC Product Showcase (Mobile-First, Metafields + Subscription UI)
+  File: sections/dtc-product-showcase.liquid
+{% endcomment %}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign sub_discount = section.settings.subscription_discount | default: 15
+  assign sub_multiplier = 100.0 | minus: sub_discount | divided_by: 100.0
+  assign sub_price_cents = current_variant.price | times: sub_multiplier | round
+
+  # Optional product metafields (create under Settings > Custom data > Products):
+  # - custom.subtitle (Single line text)
+  # - custom.benefits (Multi-line text, one bullet per line)
+  # - custom.specs_accordion (Multi-line text, format: "Question or Heading :: Answer text" per line)
+  assign subtitle_text = product.metafields.custom.subtitle.value | default: section.settings.fallback_subtitle
+  assign benefits_raw = product.metafields.custom.benefits.value | default: section.settings.fallback_benefits
+  assign accordions_raw = product.metafields.custom.specs_accordion.value | default: section.settings.fallback_accordions
+
+  # Detect first available selling plan if a subscription app is active on the product
+  assign first_selling_plan_id = ''
+  if product.selling_plan_groups.size > 0
+    assign first_group = product.selling_plan_groups.first
+    if first_group.selling_plans.size > 0
+      assign first_selling_plan_id = first_group.selling_plans.first.id
+    endif
+  endif
+-%}
+
+<section
+  id="DtcShowcase-{{ section.id }}"
+  class="dtc-pdp"
+  data-section-id="{{ section.id }}"
+  data-currency-symbol="{{ cart.currency.symbol }}"
+  data-sub-discount="{{ sub_discount }}"
+>
+  <div class="dtc-pdp__container">
+    {%- comment -%} LEFT / TOP: MOBILE-FIRST GALLERY {%- endcomment -%}
+    <div class="dtc-pdp__media">
+      {%- if section.settings.badge_text != blank -%}
+        <span class="dtc-pdp__badge">{{ section.settings.badge_text }}</span>
+      {%- endif -%}
+
+      <div class="dtc-pdp__main-img-wrap">
+        {%- if current_variant.featured_image != blank -%}
+          <img
+            id="DtcMainImage-{{ section.id }}"
+            src="{{ current_variant.featured_image | image_url: width: 1000 }}"
+            alt="{{ current_variant.featured_image.alt | escape | default: product.title }}"
+            width="1000"
+            height="1000"
+            loading="eager"
+            class="dtc-pdp__main-img"
+          >
+        {%- elsif product.featured_media != blank -%}
+          <img
+            id="DtcMainImage-{{ section.id }}"
+            src="{{ product.featured_media | image_url: width: 1000 }}"
+            alt="{{ product.featured_media.alt | escape | default: product.title }}"
+            width="1000"
+            height="1000"
+            loading="eager"
+            class="dtc-pdp__main-img"
+          >
+        {%- else -%}
+          <div class="dtc-pdp__placeholder">Add a product image in Shopify Admin</div>
+        {%- endif -%}
+      </div>
+
+      {%- if product.media.size > 1 -%}
+        <div class="dtc-pdp__thumbs" role="list">
+          {%- for media in product.media limit: 6 -%}
+            <button
+              type="button"
+              class="dtc-pdp__thumb {% if forloop.first %}is-active{% endif %}"
+              data-img-src="{{ media | image_url: width: 1000 }}"
+              data-img-alt="{{ media.alt | escape }}"
+              aria-label="View image {{ forloop.index }}"
+            >
+              <img
+                src="{{ media | image_url: width: 200 }}"
+                alt="{{ media.alt | escape }}"
+                width="200"
+                height="200"
+                loading="lazy"
+              >
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} RIGHT / BOTTOM: BUY BOX {%- endcomment -%}
+    <div class="dtc-pdp__buybox">
+      {%- if section.settings.show_rating -%}
+        <div class="dtc-pdp__rating">
+          <span class="dtc-pdp__stars" aria-hidden="true">★★★★★</span>
+          <span>{{ section.settings.rating_text }}</span>
+        </div>
+      {%- endif -%}
+
+      <h1 class="dtc-pdp__title">{{ product.title | default: 'Daily Essentials Formula' }}</h1>
+
+      {%- if subtitle_text != blank -%}
+        <p class="dtc-pdp__subtitle">{{ subtitle_text }}</p>
+      {%- endif -%}
+
+      <div class="dtc-pdp__price-row">
+        <span id="DtcActivePrice-{{ section.id }}" class="dtc-pdp__price">
+          {%- if section.settings.default_to_subscription -%}
+            {{ sub_price_cents | money }}
+          {%- else -%}
+            {{ current_variant.price | money }}
+          {%- endif -%}
+        </span>
+        {%- if current_variant.compare_at_price > current_variant.price -%}
+          <span class="dtc-pdp__compare">{{ current_variant.compare_at_price | money }}</span>
+          <span class="dtc-pdp__save-pill">SAVE</span>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} METAFIELD BENEFITS LIST {%- endcomment -%}
+      {%- if benefits_raw != blank -%}
+        {%- assign benefit_lines = benefits_raw | newline_to_br | split: '<br />' -%}
+        <ul class="dtc-pdp__benefits">
+          {%- for line in benefit_lines -%}
+            {%- assign clean_line = line | strip_html | strip -%}
+            {%- if clean_line != blank -%}
+              <li>
+                <span class="dtc-pdp__check" aria-hidden="true">✓</span>
+                <span>{{ clean_line }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- form 'product', product, id: 'DtcAddToCartForm', class: 'dtc-pdp__form' -%}
+        <input type="hidden" name="id" id="DtcVariantId-{{ section.id }}" value="{{ current_variant.id }}">
+        <input
+          type="hidden"
+          name="selling_plan"
+          id="DtcSellingPlan-{{ section.id }}"
+          value="{% if section.settings.default_to_subscription %}{{ first_selling_plan_id }}{% endif %}"
+        >
+
+        {%- comment -%} VARIANT / BUNDLE SELECTOR {%- endcomment -%}
+        {%- if product.has_only_default_variant == false -%}
+          <div class="dtc-pdp__group">
+            <label class="dtc-pdp__label">Select Option</label>
+            <div class="dtc-pdp__variants" id="DtcVariants-{{ section.id }}">
+              {%- for variant in product.variants -%}
+                <button
+                  type="button"
+                  class="dtc-pdp__variant-btn {% if variant.id == current_variant.id %}is-selected{% endif %}"
+                  data-variant-id="{{ variant.id }}"
+                  data-price-cents="{{ variant.price }}"
+                  data-compare-cents="{{ variant.compare_at_price | default: 0 }}"
+                  data-img-src="{% if variant.featured_image %}{{ variant.featured_image | image_url: width: 1000 }}{% endif %}"
+                  {% unless variant.available %}disabled{% endunless %}
+                >
+                  <span>{{ variant.title }}</span>
+                  <strong>{{ variant.price | money }}</strong>
+                </button>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} PURCHASE TYPE: SUBSCRIPTION VS ONE-TIME {%- endcomment -%}
+        {%- if section.settings.show_subscription_box -%}
+          <div class="dtc-pdp__group">
+            <label class="dtc-pdp__label">Delivery Frequency</label>
+            <div class="dtc-pdp__sub-options">
+              <label class="dtc-pdp__sub-card {% if section.settings.default_to_subscription %}is-active{% endif %}">
+                <input
+                  type="radio"
+                  name="dtc_purchase_mode"
+                  value="subscription"
+                  {% if section.settings.default_to_subscription %}checked{% endif %}
+                >
+                <div class="dtc-pdp__sub-content">
+                  <div class="dtc-pdp__sub-top">
+                    <strong>Subscribe &amp; Save {{ sub_discount }}%</strong>
+                    <span id="DtcSubPrice-{{ section.id }}" class="dtc-pdp__sub-price">
+                      {{ sub_price_cents | money }}
+                    </span>
+                  </div>
+                  <p class="dtc-pdp__sub-note">Auto-delivered every 30 days • Pause or cancel anytime</p>
+                </div>
+              </label>
+
+              <label class="dtc-pdp__sub-card {% unless section.settings.default_to_subscription %}is-active{% endunless %}">
+                <input
+                  type="radio"
+                  name="dtc_purchase_mode"
+                  value="onetime"
+                  {% unless section.settings.default_to_subscription %}checked{% endunless %}
+                >
+                <div class="dtc-pdp__sub-content">
+                  <div class="dtc-pdp__sub-top">
+                    <strong>One-Time Purchase</strong>
+                    <span id="DtcOneTimePrice-{{ section.id }}" class="dtc-pdp__sub-price">
+                      {{ current_variant.price | money }}
+                    </span>
+                  </div>
+                  <p class="dtc-pdp__sub-note">Single order at standard price</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} QUANTITY + ADD TO CART CTA {%- endcomment -%}
+        <div class="dtc-pdp__cta-row">
+          <div class="dtc-pdp__qty">
+            <button type="button" class="dtc-pdp__qty-btn" data-qty-delta="-1" aria-label="Decrease quantity">−</button>
+            <input type="number" name="quantity" id="DtcQtyInput-{{ section.id }}" value="1" min="1" aria-label="Quantity">
+            <button type="button" class="dtc-pdp__qty-btn" data-qty-delta="1" aria-label="Increase quantity">+</button>
+          </div>
+
+          <button
+            type="submit"
+            name="add"
+            id="DtcSubmitBtn-{{ section.id }}"
+            class="dtc-pdp__atc-btn"
+            {% unless current_variant.available %}disabled{% endunless %}
+          >
+            {%- if current_variant.available -%}
+              {{ section.settings.cta_label }} —
+              <span id="DtcBtnPrice-{{ section.id }}">
+                {%- if section.settings.default_to_subscription -%}
+                  {{ sub_price_cents | money }}
+                {%- else -%}
+                  {{ current_variant.price | money }}
+                {%- endif -%}
+              </span>
+            {%- else -%}
+              Sold Out
+            {%- endif -%}
+          </button>
+        </div>
+
+        <div id="DtcFormFeedback-{{ section.id }}" class="dtc-pdp__feedback" role="status" aria-live="polite"></div>
+      {%- endform -%}
+
+      {%- comment -%} TRUST BADGES {%- endcomment -%}
+      <div class="dtc-pdp__trust-grid">
+        <div class="dtc-pdp__trust-item">🚚 <span>Free &amp; Fast Shipping</span></div>
+        <div class="dtc-pdp__trust-item">🛡️ <span>30-Day Money-Back</span></div>
+        <div class="dtc-pdp__trust-item">✅ <span>Quality Tested</span></div>
+      </div>
+
+      {%- comment -%} METAFIELD ACCORDIONS {%- endcomment -%}
+      {%- if accordions_raw != blank -%}
+        {%- assign acc_lines = accordions_raw | newline_to_br | split: '<br />' -%}
+        <div class="dtc-pdp__accordions">
+          {%- for raw_item in acc_lines -%}
+            {%- assign clean_item = raw_item | strip_html | strip -%}
+            {%- if clean_item contains '::' -%}
+              {%- assign parts = clean_item | split: '::' -%}
+              <details class="dtc-pdp__accordion" {% if forloop.first %}open{% endif %}>
+                <summary>{{ parts[0] | strip }}</summary>
+                <div class="dtc-pdp__accordion-body">{{ parts[1] | strip }}</div>
+              </details>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} US VS THEM COMPARISON BLOCK {%- endcomment -%}
+  {%- if section.settings.show_comparison -%}
+    <div class="dtc-pdp__comparison">
+      <h2>Why Switch to {{ product.title | default: 'Us' }}</h2>
+      <div class="dtc-pdp__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="col-us">{{ product.title | default: 'Our Brand' }}</th>
+              <th>Generic Brands</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Formulation &amp; Build</td>
+              <td class="col-us">Purpose-built &amp; transparent</td>
+              <td>Cut corners / fillers</td>
+            </tr>
+            <tr>
+              <td>Subscription Flexibility</td>
+              <td class="col-us">Skip, pause, or cancel anytime</td>
+              <td>Locked-in or tricky billing</td>
+            </tr>
+            <tr>
+              <td>Customer Guarantee</td>
+              <td class="col-us">30-day risk-free trial</td>
+              <td>Strict return windows</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} STICKY MOBILE ADD TO CART BAR {%- endcomment -%}
+  <div class="dtc-pdp__sticky-bar" id="DtcStickyBar-{{ section.id }}">
+    <div class="dtc-pdp__sticky-info">
+      <strong>{{ product.title | default: 'Product' }}</strong>
+      <span id="DtcStickyPrice-{{ section.id }}">
+        {%- if section.settings.default_to_subscription -%}
+          {{ sub_price_cents | money }}
+        {%- else -%}
+          {{ current_variant.price | money }}
+        {%- endif -%}
+      </span>
+    </div>
+    <button type="button" class="dtc-pdp__sticky-btn" id="DtcStickyCta-{{ section.id }}">
+      {{ section.settings.cta_label }}
+    </button>
+  </div>
+</section>
+
+<style>
+  #DtcShowcase-{{ section.id }} {
+    --dtc-accent: {{ section.settings.accent_color | default: '#111827' }};
+    --dtc-highlight: {{ section.settings.highlight_color | default: '#0f766e' }};
+    --dtc-border: #e5e7eb;
+    --dtc-bg-soft: #f9fafb;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    font-family: inherit;
+    color: #111827;
+  }
+
+  #DtcShowcase-{{ section.id }} * {
+    box-sizing: border-box;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  @media (min-width: 860px) {
+    #DtcShowcase-{{ section.id }} {
+      padding: 32px 24px;
+    }
+    #DtcShowcase-{{ section.id }} .dtc-pdp__container {
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__media {
+    position: relative;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    background: var(--dtc-accent);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__main-img-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--dtc-bg-soft);
+    border: 1px solid var(--dtc-border);
+    aspect-ratio: 1 / 1;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    padding: 24px;
+    text-align: center;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__thumbs {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__thumb {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    padding: 0;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    background: var(--dtc-bg-soft);
+    cursor: pointer;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__thumb.is-active {
+    border-color: var(--dtc-accent);
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__stars {
+    color: #f59e0b;
+    letter-spacing: 1px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__title {
+    margin: 0 0 8px;
+    font-size: clamp(24px, 4vw, 34px);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__subtitle {
+    margin: 0 0 14px;
+    font-size: 15px;
+    color: #4b5563;
+    line-height: 1.45;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__price-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__price {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__compare {
+    font-size: 16px;
+    color: #9ca3af;
+    text-decoration: line-through;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__save-pill {
+    background: #ecfdf5;
+    color: var(--dtc-highlight);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    display: grid;
+    gap: 8px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__check {
+    color: var(--dtc-highlight);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__group {
+    margin-bottom: 16px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    color: #374151;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__variant-btn {
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--dtc-border);
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    font-size: 13px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__variant-btn.is-selected {
+    border-color: var(--dtc-accent);
+    background: var(--dtc-bg-soft);
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-options {
+    display: grid;
+    gap: 10px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--dtc-border);
+    border-radius: 10px;
+    cursor: pointer;
+    background: #ffffff;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-card.is-active {
+    border-color: var(--dtc-highlight);
+    background: #f0fdfa;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-card input {
+    margin-top: 3px;
+    accent-color: var(--dtc-highlight);
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-content {
+    flex: 1;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sub-note {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #4b5563;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__cta-row {
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__qty {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--dtc-border);
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 52px;
+    background: #ffffff;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__qty-btn {
+    width: 34px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__qty input {
+    width: 42px;
+    text-align: center;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    background: transparent;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__atc-btn {
+    min-height: 52px;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: var(--dtc-accent);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 0 18px;
+    cursor: pointer;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__atc-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__feedback {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dtc-highlight);
+    min-height: 18px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--dtc-border);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__trust-item {
+    background: var(--dtc-bg-soft);
+    padding: 10px 8px;
+    border-radius: 8px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__accordions {
+    margin-top: 20px;
+    border-top: 1px solid var(--dtc-border);
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__accordion {
+    border-bottom: 1px solid var(--dtc-border);
+    padding: 12px 0;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__accordion summary {
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__accordion-body {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__comparison {
+    margin-top: 48px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__comparison h2 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 18px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__table-wrap {
+    overflow-x: auto;
+  }
+
+  #DtcShowcase-{{ section.id }} table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 480px;
+  }
+
+  #DtcShowcase-{{ section.id }} th,
+  #DtcShowcase-{{ section.id }} td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dtc-border);
+    text-align: left;
+  }
+
+  #DtcShowcase-{{ section.id }} .col-us {
+    background: #f0fdfa;
+    font-weight: 600;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sticky-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: #ffffff;
+    border-top: 1px solid var(--dtc-border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transform: translateY(100%);
+    transition: transform 0.2s ease;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sticky-bar.is-visible {
+    transform: translateY(0);
+  }
+
+  @media (min-width: 860px) {
+    #DtcShowcase-{{ section.id }} .dtc-pdp__sticky-bar {
+      display: none;
+    }
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sticky-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+  }
+
+  #DtcShowcase-{{ section.id }} .dtc-pdp__sticky-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--dtc-accent);
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  (function () {
+    const root = document.getElementById('DtcShowcase-{{ section.id }}');
+    if (!root) return;
+
+    const symbol = root.dataset.currencySymbol || '$';
+    const subDiscount = parseFloat(root.dataset.subDiscount || '15');
+    const subFactor = (100 - subDiscount) / 100;
+    const defaultSellingPlan = '{{ first_selling_plan_id }}';
+
+    let currentPriceCents = {{ current_variant.price | default: 2900 }};
+    let purchaseMode = {% if section.settings.default_to_subscription %}'subscription'{% else %}'onetime'{% endif %};
+
+    const mainImg = document.getElementById('DtcMainImage-{{ section.id }}');
+    const variantInput = document.getElementById('DtcVariantId-{{ section.id }}');
+    const sellingPlanInput = document.getElementById('DtcSellingPlan-{{ section.id }}');
+    const activePriceEl = document.getElementById('DtcActivePrice-{{ section.id }}');
+    const subPriceEl = document.getElementById('DtcSubPrice-{{ section.id }}');
+    const oneTimePriceEl = document.getElementById('DtcOneTimePrice-{{ section.id }}');
+    const btnPriceEl = document.getElementById('DtcBtnPrice-{{ section.id }}');
+    const stickyPriceEl = document.getElementById('DtcStickyPrice-{{ section.id }}');
+    const qtyInput = document.getElementById('DtcQtyInput-{{ section.id }}');
+    const form = document.getElementById('DtcAddToCartForm');
+    const feedbackEl = document.getElementById('DtcFormFeedback-{{ section.id }}');
+
+    function formatMoney(cents) {
+      return symbol + (cents / 100).toFixed(2);
+    }
+
+    function refreshPrices() {
+      const subCents = Math.round(currentPriceCents * subFactor);
+      if (subPriceEl) subPriceEl.textContent = formatMoney(subCents);
+      if (oneTimePriceEl) oneTimePriceEl.textContent = formatMoney(currentPriceCents);
+
+      const displayCents = purchaseMode === 'subscription' ? subCents : currentPriceCents;
+      if (activePriceEl) activePriceEl.textContent = formatMoney(displayCents);
+      if (btnPriceEl) btnPriceEl.textContent = formatMoney(displayCents);
+      if (stickyPriceEl) stickyPriceEl.textContent = formatMoney(displayCents);
+
+      if (sellingPlanInput) {
+        sellingPlanInput.value = purchaseMode === 'subscription' ? defaultSellingPlan : '';
+      }
+    }
+
+    // Thumbnails
+    root.querySelectorAll('.dtc-pdp__thumb').forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        root.querySelectorAll('.dtc-pdp__thumb').forEach((t) => t.classList.remove('is-active'));
+        thumb.classList.add('is-active');
+        if (mainImg && thumb.dataset.imgSrc) {
+          mainImg.src = thumb.dataset.imgSrc;
+        }
+      });
+    });
+
+    // Variant buttons
+    root.querySelectorAll('.dtc-pdp__variant-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        root.querySelectorAll('.dtc-pdp__variant-btn').forEach((b) => b.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        if (variantInput) variantInput.value = btn.dataset.variantId;
+        currentPriceCents = parseInt(btn.dataset.priceCents, 10) || currentPriceCents;
+        if (mainImg && btn.dataset.imgSrc) {
+          mainImg.src = btn.dataset.imgSrc;
+        }
+        refreshPrices();
+      });
+    });
+
+    // Subscription vs One-Time toggle
+    root.querySelectorAll('input[name="dtc_purchase_mode"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        purchaseMode = e.target.value;
+        root.querySelectorAll('.dtc-pdp__sub-card').forEach((card) => {
+          card.classList.toggle('is-active', card.contains(e.target));
+        });
+        refreshPrices();
+      });
+    });
+
+    // Quantity stepper
+    root.querySelectorAll('.dtc-pdp__qty-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!qtyInput) return;
+        const delta = parseInt(btn.dataset.qtyDelta, 10);
+        const nextVal = Math.max(1, (parseInt(qtyInput.value, 10) || 1) + delta);
+        qtyInput.value = nextVal;
+      });
+    });
+
+    // Ajax Add to Cart with graceful fallback
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        try {
+          const res = await fetch('/cart/add.js', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          });
+          if (res.ok) {
+            if (feedbackEl) feedbackEl.textContent = 'Added to cart!';
+          } else {
+            form.submit();
+          }
+        } catch (err) {
+          form.submit();
+        }
+      });
+    }
+
+    // Sticky mobile bar when scrolling past main ATC
+    const stickyBar = document.getElementById('DtcStickyBar-{{ section.id }}');
+    const mainAtc = document.getElementById('DtcSubmitBtn-{{ section.id }}');
+    const stickyCta = document.getElementById('DtcStickyCta-{{ section.id }}');
+
+    if (stickyBar && mainAtc) {
+      window.addEventListener('scroll', () => {
+        const rect = mainAtc.getBoundingClientRect();
+        stickyBar.classList.toggle('is-visible', rect.bottom < 0);
+      }, { passive: true });
+    }
+
+    if (stickyCta && form) {
+      stickyCta.addEventListener('click', () => {
+        form.requestSubmit ? form.requestSubmit() : form.submit();
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "DTC Product Showcase",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Top badge text",
+      "default": "Best Seller"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show star rating row",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rating_text",
+      "label": "Rating summary text",
+      "default": "4.9 (1,420+ verified reviews)"
+    },
+    {
+      "type": "text",
+      "id": "fallback_subtitle",
+      "label": "Default subtitle (if metafield empty)",
+      "default": "Engineered for daily performance with zero crash and clean ingredients."
+    },
+    {
+      "type": "textarea",
+      "id": "fallback_benefits",
+      "label": "Default benefit bullets (one per line)",
+      "default": "Fast-absorbing formula designed for daily consistency\nBundle & save up to 20% on multi-packs\nBacked by our 30-day satisfaction guarantee"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subscription_box",
+      "label": "Show subscription vs one-time selector",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "default_to_subscription",
+      "label": "Pre-select Subscribe & Save by default",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "subscription_discount",
+      "label": "Subscription discount (%)",
+      "min": 5,
+      "max": 40,
+      "step": 5,
+      "default": 15
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Add to Cart button text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "textarea",
+      "id": "fallback_accordions",
+      "label": "Accordions (format: Title :: Body per line)",
+      "default": "How It Works :: Take daily as directed and pair with your regular routine for best results.\nShipping & Returns :: Ships within 24 hours with a 30-day money-back guarantee."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comparison",
+      "label": "Show Us vs. Them comparison table",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Primary button & badge color",
+      "default": "#111827"
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Subscription & savings highlight color",
+      "default": "#0f766e"
+    }
+  ],
+  "presets": [
+    {
+      "name": "DTC Product Showcase"
+    }
+  ]
+}
+{% endschema %}
